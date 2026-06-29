@@ -1,0 +1,719 @@
+/* ----------------------------------------------------
+   TAILWIND BASE
+---------------------------------------------------- */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ----------------------------------------------------
+   GLOBAL BASE STYLES
+---------------------------------------------------- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  transition: 0.2s ease;
+}
+
+body {
+  background: #f9fafb;
+  font-family: "Inter", sans-serif;
+  color: #374151;
+}
+
+/* ----------------------------------------------------
+   HEADER GLOBAL
+---------------------------------------------------- */
+header {
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* ----------------------------------------------------
+   LOGO
+---------------------------------------------------- */
+/* ----------------------------------------------------
+   LOGO RESPONSIVE
+---------------------------------------------------- */
+.logo-img {
+  width: 42px;
+  height: 42px;
+  border-radius: 6px;
+}
+
+@media (max-width: 1024px) {
+  .logo-img {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+@media (max-width: 640px) {
+  .logo-img {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* ----------------------------------------------------
+   SEARCH BAR — EXACT MATCH (Mobile + Desktop)
+---------------------------------------------------- */
+/* ---------------------------------------------
+   SEARCH BAR CONTAINER (Centers search bar)
+----------------------------------------------*/
+
+/* Mobile: full width with margin */
+.searchbar-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/* Medium width on tablet / desktop */
+@media (min-width: 768px) {
+  .searchbar-container {
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+/* Large screens: narrower & centered */
+@media (min-width: 1024px) {
+  .searchbar-container {
+    width: 55%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+/* XL screens */
+@media (min-width: 1280px) {
+  .searchbar-container {
+    width: 50%;
+  }
+}
+
+
+
+/* ---------------------------------------------
+   SEARCH BAR — STAYS EXACT LOOK LIKE SCREENSHOT
+----------------------------------------------*/
+
+/* Medium, centered search bar container */
+.searchbar-container {
+  width: 100%;
+  max-width: 600px;   /* medium size */
+  margin: 0 auto;
+  display: flex;
+  transition: 0.2s ease-in-out;
+}
+
+/* Tablet */
+@media (min-width: 640px) {
+  .searchbar-container {
+    width: 80%;
+  }
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+  .searchbar-container {
+    width: 50%;
+    max-width: 600px;
+  }
+}
+.searchbar-input {
+  width: 100%;
+  margin-left: 12px;
+  outline: none;
+  background: transparent;
+}
+
+@media (max-width: 768px) {
+  .searchbar-wrapper {
+    background: #ffffff !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 50px !important;
+    padding: 12px 16px !important;
+    height: 50px !important;
+    display: flex;
+    align-items: center;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.05) !important;
+  }
+  .searchbar-input { font-size: 13px !important; }
+  .search-icon { font-size: 18px !important; color: #9ca3af !important; }
+  .camera-pill { background: #f3f4f6 !important; padding: 6px !important; border-radius: 50% !important; }
+  .camera-icon { font-size: 18px !important; color: #6b7280 !important; }
+}
+
+@media (min-width: 1024px) {
+  .searchbar-wrapper {
+    background: #f3f4f6 !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 8px !important;
+    padding: 10px 14px !important;
+    height: 42px !important;
+    display: flex;
+    align-items: center;
+    box-shadow: none !important;
+  }
+  .searchbar-input { font-size: 14px !important; }
+  .search-icon { font-size: 14px !important; color: #6b7280 !important; }
+  .camera-pill { background: transparent !important; padding: 4px !important; }
+  .camera-icon { font-size: 16px !important; color: #6b7280 !important; }
+}
+
+
+
+
+/* ----------------------------------------------------
+   LOCATION SELECTOR - DESKTOP & MOBILE
+---------------------------------------------------- */
+/* ------------------------------------------
+   LOCATION SELECTOR CONTAINER
+   (Matches Tailwind classes)
+-------------------------------------------*/
+.location-selector-btn {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  width: 100%;
+
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+
+  background: white;
+  border: 1px solid #e5e7eb;
+  transition: background 0.15s ease-in-out;
+}
+
+.location-selector-btn:active {
+  background: #f3f4f6;
+}
+
+/* Desktop overrides */
+@media (min-width: 1024px) {
+  .location-selector-btn {
+    width: auto;
+    padding: 0.25rem 0.5rem;
+    border: none;
+    background: transparent;
+  }
+
+  .location-selector-btn:hover {
+    background: #f9fafb;
+  }
+}
+
+/* ------------------------------------------
+   ICONS
+-------------------------------------------*/
+.loc-pin-icon {
+  color: #f97316; /* orange-600 */
+  font-size: 20px;
+}
+
+@media (min-width: 1024px) {
+  .loc-pin-icon {
+    font-size: 22px;
+  }
+}
+
+.loc-down-icon {
+  margin-left: auto;
+  color: #4b5563; /* gray-600 */
+  font-size: 18px;
+}
+
+@media (min-width: 1024px) {
+  .loc-down-icon {
+    margin-left: 0.25rem;
+  }
+}
+
+/* ------------------------------------------
+   TEXT
+-------------------------------------------*/
+.loc-title {
+  font-size: 11px;
+  color: #6b7280; /* gray-500 */
+  line-height: 1;
+}
+
+.loc-address {
+  font-size: 14px;
+  font-weight: 500;
+  max-width: 160px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (min-width: 1024px) {
+  .loc-address {
+    max-width: 200px;
+  }
+}
+
+/* ------------------------------------------
+   HEADER RIGHT-SIDE ALIGNMENT
+   Matches screenshot EXACTLY
+-------------------------------------------*/
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem; /* mobile gap */
+}
+
+@media (min-width: 1024px) {
+  .header-right {
+    gap: 1rem; /* desktop gap */
+  }
+}
+
+/* Desktop-only Location area */
+.header-location-desktop {
+  display: none;
+}
+@media (min-width: 1024px) {
+  .header-location-desktop {
+    display: block;
+  }
+}
+
+
+/* ----------------------------------------------------
+   CATEGORY SLIDER — DESKTOP (NO SCROLL)
+---------------------------------------------------- */
+/* ----------------------------------------------------
+   CATEGORY SLIDER — GLOBAL
+---------------------------------------------------- */
+.category-slider {
+  background: white;
+  border-top: 1px solid #e5e7eb;
+  padding: 12px 0;
+}
+
+/* ----------------------------------------------------
+   MOBILE — HORIZONTAL SCROLL (SCROLLBAR HIDDEN)
+---------------------------------------------------- */
+.category-slider-scroll {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+
+  padding: 0 12px;
+  scroll-behavior:smooth; /*🔥 smooth mobile scroll*/
+}
+
+/* Hide scrollbar — Chrome, Edge, Safari */
+.category-slider-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar — Firefox */
+
+/* ----------------------------------------------------
+   DESKTOP — CENTERED, NO SCROLL
+---------------------------------------------------- */
+@media (min-width: 1024px) {
+  .category-slider-scroll {
+    overflow: visible;
+    white-space: normal;
+
+    justify-content: center;
+    gap: 48px;
+  }
+}
+
+/* ----------------------------------------------------
+   CATEGORY ITEMS
+---------------------------------------------------- */
+.category-item img {
+  width: 28px;
+  height: 28px;
+  opacity: 0.8;
+  transition: 0.2s ease-in-out;
+}
+
+.category-item:hover img {
+  opacity: 1;
+}
+
+.category-item p {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #374151;
+  text-align: center;
+  white-space: normal;
+}
+
+@media (min-width: 1024px) {
+  .category-item p {
+    font-size: 13px;
+  }
+}
+
+/* ----------------------------------------------------
+   CART BADGE
+---------------------------------------------------- */
+.cart-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #dc2626;
+  padding: 2px 7px;
+  border-radius: 50%;
+  color: white;
+  font-size: 10px;
+}
+
+/* ----------------------------------------------------
+   PROFILE DROPDOWN
+---------------------------------------------------- */
+.profile-dropdown {
+  background: white;
+  padding: 6px 0;
+  width: 160px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  position: absolute;
+  right: 0;
+  margin-top: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.profile-dropdown button {
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  background: transparent;
+}
+
+.profile-dropdown button:hover {
+  background: #fff7ed;
+}
+
+/* ----------------------------------------------------
+   MOBILE STACKED HEADER
+---------------------------------------------------- */
+@media (max-width: 768px) {
+  .mobile-stack {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 8px;
+  }
+}
+
+
+/* ----------------------------------------------------
+   GLOBAL POPUP OVERLAY (Dim Background)
+---------------------------------------------------- */
+.popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  backdrop-filter: blur(1px);
+  padding: 12px;
+  animation: fadeIn 0.25s ease-out;
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ----------------------------------------------------
+   MAIN CARD (Login & OTP Box)
+---------------------------------------------------- */
+.login-card,
+.otp-card {
+  width: 750px;
+  max-width: 100%;
+  background: white;
+  border-radius: 18px;
+  overflow: hidden;
+  display: flex;
+  box-shadow: 0px 12px 40px rgba(0, 0, 0, 0.25);
+  animation: fadeIn 0.25s ease-out;
+}
+
+/* Mobile: stack vertically */
+@media (max-width: 768px) {
+  .login-card,
+  .otp-card {
+    flex-direction: column;
+    height: auto;
+    max-height: 90vh;
+  }
+}
+
+/* ----------------------------------------------------
+   LEFT PANEL (Orange Gradient)
+---------------------------------------------------- */
+.card-left {
+  width: 55%;
+  padding: 32px 38px;
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .card-left {
+    width: 100%;
+    padding: 24px 26px;
+    border-radius: 0 0 18px 18px;
+  }
+}
+
+/* Input container inside left panel */
+.input-box {
+  background: white;
+  border-radius: 9999px;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+/* Phone or email input */
+.input-box input {
+  flex: 1;
+  font-size: 16px;
+  border: none;
+  outline: none;
+  margin-left: 10px;
+  background: transparent;
+  color: black;
+}
+
+/* Continue button */
+.login-btn {
+  width: 100%;
+  margin-top: 24px;
+  padding: 12px;
+  border-radius: 9999px;
+  background: #3b82f6;
+  color: white;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.login-btn:hover {
+  background: #1d4ed8;
+}
+
+/* ----------------------------------------------------
+   RIGHT PANEL (White Side)
+---------------------------------------------------- */
+.card-right {
+  width: 45%;
+  background: white;
+  padding: 24px;
+  text-align: center;
+  position: relative;
+}
+
+.card-right img {
+  width: 90px;
+  margin-top: 45px;
+}
+
+@media (max-width: 768px) {
+  .card-right {
+    display: none;
+  }
+}
+
+/* Close button */
+.close-btn {
+  position: absolute;
+  right: 18px;
+  top: 18px;
+  font-size: 26px;
+  color: #555;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.close-btn:hover {
+  color: black;
+}
+
+/* Mobile close button */
+.close-btn-mobile {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .close-btn-mobile {
+    display: block;
+    position: absolute;
+    top: 18px;
+    right: 24px;
+    font-size: 36px;
+    color: white;
+  }
+}
+
+/* ----------------------------------------------------
+   OTP INPUT CIRCLES
+---------------------------------------------------- */
+.otp-circle {
+  width: 50px;
+  height: 50px;
+  border-radius: 9999px;
+  background: white;
+  font-size: 22px;
+  font-weight: bold;
+  text-align: center;
+  border: 2px solid transparent;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+  transition: 0.2s ease;
+}
+
+.otp-circle:hover {
+  background: #86efac;
+  border-color: #16a34a;
+}
+
+.otp-circle:focus {
+  outline: none;
+  background: #4ade80;
+  border-color: #166534;
+}
+
+@media (max-width: 480px) {
+  .otp-circle {
+    width: 42px;
+    height: 42px;
+    font-size: 18px;
+  }
+}
+
+/* ----------------------------------------------------
+   OTP TIMER & RESEND
+---------------------------------------------------- */
+.otp-timer {
+  margin-top: 16px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.resend-btn {
+  margin-top: 8px;
+  font-size: 14px;
+  text-decoration: underline;
+  cursor: pointer;
+  color: white;
+}
+
+/* ----------------------------------------------------
+   OTP VERIFY BUTTON
+---------------------------------------------------- */
+.verify-btn {
+  margin-top: 24px;
+  width: 150px;
+  padding: 10px;
+  border-radius: 9999px;
+  background: white;
+  color: #ea580c;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.verify-btn:hover {
+  background: #e5e5e5;
+}
+
+/* ----------------------------------------------------
+   OTP POPUP CARD
+---------------------------------------------------- */
+.otp-popup {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 260px;
+  background: white;
+  padding: 18px;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+  box-shadow: 0px 6px 24px rgba(0,0,0,0.2);
+  z-index: 3000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.otp-popup h3 {
+  color: #ea580c;
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.otp-popup .otp-number {
+  font-size: 28px;
+  font-weight: 700;
+  text-align: center;
+  margin-top: 6px;
+}
+
+.otp-popup button {
+  width: 100%;
+  margin-top: 10px;
+  padding: 6px;
+  border-radius: 6px;
+  transition: 0.2s;
+}
+
+.otp-popup .copy-btn {
+  background: #ea580c;
+  color: white;
+}
+
+.otp-popup .copy-btn:hover {
+  background: #c2410c;
+}
+
+.otp-popup .close-mini {
+  color: #666;
+}
+
+.otp-popup .close-mini:hover {
+  color: black;
+}
+
+
+/* Fix gap below fixed header */
+.home-wrapper {
+  padding-top: 10px;     /* for mobile */
+}
+
+@media (min-width: 1024px) {
+  .home-wrapper {
+    padding-top: 50px;   /* for desktop */
+  }
+}
+
+/* REMOVE SCROLLBAR COMPLETELY */
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;   /* Chrome, Safari */
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;   /* IE & Edge */
+  scrollbar-width: none;      /* Firefox */
+}

@@ -1,0 +1,117 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #ffffff;
+  color: #1e293b;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Global Dark Mode styles */
+.dark body {
+  background-color: #0b0f19;
+  color: #f8fafc;
+  background-image: radial-gradient(at 0% 0%, rgba(249, 115, 22, 0.05) 0px, transparent 50%),
+                    radial-gradient(at 50% 0%, rgba(59, 130, 246, 0.05) 0px, transparent 50%);
+  background-attachment: fixed;
+}
+
+.dark header, 
+.dark .bg-white,
+.dark [class*="bg-white"] {
+  background-color: #111827 !important;
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.3) !important;
+}
+
+.dark .text-slate-800,
+.dark .text-slate-900,
+.dark .text-slate-750,
+.dark .text-slate-850,
+.dark .text-slate-700,
+.dark .text-slate-600,
+.dark .text-gray-800,
+.dark .text-gray-900,
+.dark .text-gray-700,
+.dark .text-gray-600 {
+  color: #f8fafc !important;
+}
+
+.dark .text-slate-400,
+.dark .text-slate-500,
+.dark .text-gray-500,
+.dark .text-gray-400,
+.dark .text-slate-300,
+.dark .text-slate-350 {
+  color: #cbd5e1 !important;
+}
+
+.dark .border-slate-100,
+.dark .border-slate-200,
+.dark .border-gray-200,
+.dark .border-gray-100,
+.dark .border-slate-50 {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.dark .bg-slate-50,
+.dark .bg-slate-100,
+.dark .bg-gray-50,
+.dark .bg-gray-100,
+.dark .bg-slate-50\/30,
+.dark .bg-slate-50\/50,
+.dark .bg-orange-50\/30,
+.dark .bg-orange-50\/40 {
+  background-color: #1f2937 !important;
+}
+
+.dark input, 
+.dark select, 
+.dark textarea {
+  background-color: #1f2937 !important;
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.dark input::placeholder {
+  color: #6b7280 !important;
+}
+
+/* OrderTracking Dark Mode overrides */
+.dark .bg-\[\#f3f4f6\] {
+  background-color: #0b0f19 !important;
+}
+.dark .bg-\[\#f0f4f8\] {
+  background-color: #111827 !important;
+}
+.dark [class*="border-slate-"],
+.dark [class*="border-gray-"] {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+.dark [class*="bg-slate-50"],
+.dark [class*="bg-slate-100"],
+.dark [class*="bg-gray-50"],
+.dark [class*="bg-gray-100"] {
+  background-color: #1f2937 !important;
+}
+.dark svg path[stroke="#e2e8f0"] {
+  stroke: rgba(255, 255, 255, 0.08) !important;
+}
+.dark .text-slate-650,
+.dark .text-slate-450 {
+  color: #cbd5e1 !important;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
