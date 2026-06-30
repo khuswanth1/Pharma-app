@@ -49,27 +49,9 @@ COPY --from=build /app/payment-service/target/*.jar app.jar
 EXPOSE 8085
 ENTRYPOINT ["java","-jar","/app/app.jar"]
 
-# API Gateway target runner
+# API Gateway target runner (default target)
 FROM runner AS api-gateway
 COPY --from=build /app/api-gateway/target/*.jar app.jar
 EXPOSE 8089
 ENTRYPOINT ["java","-jar","/app/app.jar"]
 
-# ---------------------------------------------------------------------------
-# All-in-one runner: runs EVERY service in a single container. This is the
-# DEFAULT build target because it is the LAST stage, so Render builds & runs
-# this one unless you explicitly select another target.
-# Best when you want a single Render Web Service (e.g. pharmacybackend-ugzy).
-# ---------------------------------------------------------------------------
-FROM runner AS all-in-one
-WORKDIR /app
-COPY --from=build /app/auth-service/target/*.jar     auth-service.jar
-COPY --from=build /app/product-service/target/*.jar  product-service.jar
-COPY --from=build /app/cart-service/target/*.jar     cart-service.jar
-COPY --from=build /app/order-service/target/*.jar    order-service.jar
-COPY --from=build /app/payment-service/target/*.jar  payment-service.jar
-COPY --from=build /app/api-gateway/target/*.jar      api-gateway.jar
-COPY start.sh start.sh
-RUN chmod +x start.sh
-# Render injects $PORT at runtime; the gateway binds to it (see start.sh).
-ENTRYPOINT ["sh", "start.sh"]

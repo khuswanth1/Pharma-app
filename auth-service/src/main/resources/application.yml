@@ -1,55 +1,47 @@
 server:
-  # In the all-in-one container this is overridden to 8081 by start.sh (--server.port=8081).
-  # If you ever deploy auth-service as its OWN Render service, it will bind to Render's $PORT.
   port: ${PORT:8081}
+  forward-headers-strategy: framework
+  tomcat:
+    max-http-form-post-size: 10MB
 
 spring:
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
   application:
     name: auth-service
-
-  # All services can share ONE database. Set SPRING_DATASOURCE_URL / _USERNAME / _PASSWORD
-  # on Render and every service (auth, product, cart, order, payment) will use it.
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:pharmacy_auth}?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
     username: ${SPRING_DATASOURCE_USERNAME:${DB_USERNAME:root}}
     password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD:2205}}
-
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: false
-    open-in-view: false
-
-  # Google sign-in. Real values come from env (GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET).
-  # Non-empty defaults keep the service booting even when Google login is NOT configured.
-  # Email/password login works regardless of these values.
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
   security:
     oauth2:
       client:
         registration:
           google:
-            client-id: ${GOOGLE_CLIENT_ID:google-oauth-not-configured}
-            client-secret: ${GOOGLE_CLIENT_SECRET:google-oauth-not-configured}
+            client-id: ${GOOGLE_CLIENT_ID:google-client-id-placeholder}
+            client-secret: ${GOOGLE_CLIENT_SECRET:google-client-secret-placeholder}
             scope: openid,profile,email
-            redirect-uri: ${GOOGLE_REDIRECT_URI:{baseUrl}/login/oauth2/code/google}
+            redirect-uri: ${GOOGLE_REDIRECT_URI:http://localhost:8089/login/oauth2/code/google}
+
 
 app:
-  # MUST be identical to the value the api-gateway uses (JWT_SECRET), or the gateway
-  # will reject the tokens this service issues.
   jwt-secret: ${JWT_SECRET:pharmacy_super_secret_key_please_change}
   jwt-expiration-ms: ${JWT_EXPIRATION_MS:86400000}
-
-  # Used only to render the correct server URL in Swagger. Point at the public backend URL in prod.
-  gateway-url: ${APP_GATEWAY_URL:http://localhost:8089}
-
-  # Optional Geoapify key for address search. Empty default = no crash; geocoding just returns an error if called.
-  geoapify-key: ${APP_GEOAPIFY_KEY:}
-
+  geoapify-key: ${GEOAPIFY_KEY:0ba2a0054b5845ad8fb86a37fdadf5c5}
   oauth2:
-    # Where the browser is sent back to after Google login. In prod set this to your Vercel URL + /login.
+    # Where the React app reads ?token=&userId= after a successful Google login.
     success-redirect-uri: ${FRONTEND_OAUTH_REDIRECT:http://localhost:3000/login}
-    authorization-url: ${OAUTH2_AUTHORIZATION_URL:/oauth2/authorization/google}
-    callback-url: ${OAUTH2_CALLBACK_URL:/login/oauth2/code/google}
+    authorization-url: /oauth2/authorization/google
+    callback-url: /login/oauth2/code/google
 
 springdoc:
   swagger-ui:
