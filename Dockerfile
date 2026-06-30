@@ -19,12 +19,6 @@ RUN mvn clean package -DskipTests
 FROM eclipse-temurin:21-jre AS runner
 WORKDIR /app
 
-# API Gateway target runner
-FROM runner AS api-gateway
-COPY --from=build /app/api-gateway/target/*.jar app.jar
-EXPOSE 8089
-ENTRYPOINT ["java","-jar","/app/app.jar"]
-
 # Auth Service target runner
 FROM runner AS auth-service
 COPY --from=build /app/auth-service/target/*.jar app.jar
@@ -54,3 +48,10 @@ FROM runner AS payment-service
 COPY --from=build /app/payment-service/target/*.jar app.jar
 EXPOSE 8085
 ENTRYPOINT ["java","-jar","/app/app.jar"]
+
+# API Gateway target runner (default target)
+FROM runner AS api-gateway
+COPY --from=build /app/api-gateway/target/*.jar app.jar
+EXPOSE 8089
+ENTRYPOINT ["java","-jar","/app/app.jar"]
+
