@@ -10,8 +10,11 @@ spring:
       globalcors:
         cors-configurations:
           '[/**]':
-            allowedOrigins:
-              - ${FRONTEND_ORIGIN:http://localhost:3000}
+            allowedOriginPatterns:
+              - "http://localhost:3000"
+              - "https://*.vercel.app"
+              - "https://pharmacy-frontend-flax.vercel.app"
+              - "${FRONTEND_ORIGIN:http://localhost:3000}"
             allowedMethods: "*"
             allowedHeaders: "*"
             allowCredentials: true
