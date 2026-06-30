@@ -3,7 +3,7 @@ import axios from 'axios';
 // Points at the API Gateway, which aggregates all microservices (see Swagger at
 // http://localhost:8089/swagger-ui.html). Override with REACT_APP_API_URL.
 const apiClient = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8089',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8089',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -14,6 +14,7 @@ apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('pharmacy_token');
     if (token) {
+      config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;

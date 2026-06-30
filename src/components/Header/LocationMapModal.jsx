@@ -19,7 +19,7 @@ export default function LocationMapModal({ initialCoords, onCancel, onConfirm,})
   const [marker, setMarker] = useState(startMarker);
 
   const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_KEY,
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_KEY,
     libraries: ["places"],
   });
 
@@ -97,7 +97,7 @@ export default function LocationMapModal({ initialCoords, onCancel, onConfirm,})
 
     debouncedFetch.current = setTimeout(async () => {
       // 1) Try Google Maps Geocoder if key is defined
-      if (window.google && window.google.maps && process.env.REACT_APP_GOOGLE_MAPS_KEY && process.env.REACT_APP_GOOGLE_MAPS_KEY !== "undefined") {
+      if (window.google && window.google.maps && import.meta.env.VITE_GOOGLE_MAPS_KEY && import.meta.env.VITE_GOOGLE_MAPS_KEY !== "undefined") {
         const geocoder = new window.google.maps.Geocoder();
         try {
           const response = await geocoder.geocode({ location: { lat, lng } });

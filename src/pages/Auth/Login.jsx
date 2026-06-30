@@ -350,7 +350,7 @@ const Login = ({ onClose }) => {
       toast.info("Redirecting to Google login...");
       const res = await googleLoginAPI();
       if (res && res.success && res.data?.endpoint) {
-        const gatewayUrl = process.env.REACT_APP_API_URL || "http://localhost:8089";
+        const gatewayUrl = import.meta.env.VITE_API_URL || "http://localhost:8089";
         window.location.href = `${gatewayUrl}${res.data.endpoint}`;
       } else {
         toast.error("Failed to retrieve Google OAuth2 endpoint from server.");
