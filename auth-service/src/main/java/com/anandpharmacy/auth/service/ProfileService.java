@@ -1,0 +1,70 @@
+package com.anandpharmacy.auth.service;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.anandpharmacy.auth.dto.UpdateProfileRequest;
+import com.anandpharmacy.auth.entity.User;
+import com.anandpharmacy.auth.exception.ResourceNotFoundException;
+import com.anandpharmacy.auth.repo.UserRepository;
+
+@Service
+public class ProfileService {
+
+    private final UserRepository users;
+
+    public ProfileService(UserRepository users) {
+        this.users = users;
+    }
+
+    public User getById(String id) {
+        return users.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    }
+
+    @Transactional
+    public User update(String id, UpdateProfileRequest req) {
+        User u = getById(id);
+        if (req.name() != null && !req.name().isBlank()) {
+            u.setName(req.name());
+        }
+        if (req.phone() != null) {
+            u.setPhone(req.phone());
+        }
+        if (req.email() != null && !req.email().isBlank()) {
+            u.setEmail(req.email());
+        }
+        if (req.address() != null) {
+            u.setAddress(req.address());
+        }
+        if (req.geolocation() != null) {
+            u.setGeolocation(req.geolocation());
+        }
+        if (req.gender() != null) {
+            u.setGender(req.gender());
+        }
+        if (req.picture() != null) {
+            if (req.picture().isBlank()) {
+                u.setPicture(null);
+            } else {
+                u.setPicture(req.picture());
+            }
+        }
+        if (req.walletBalance() != null) {
+            u.setWalletBalance(req.walletBalance());
+        }
+        return users.save(u);
+    }
+
+    /**
+     * Atomically adds {@code amount} to the user's current wallet balance and
+     * persists the result. Using the DB record as source-of-truth avoids stale
+     * frontend-closure bugs.
+     */
+    @Transactional
+    public User addWalletBalance(String id, double amount) {
+        User u = getById(id);
+        u.setWalletBalance(u.getWalletBalance() + amount);
+        return users.save(u);
+    }
+}

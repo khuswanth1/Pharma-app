@@ -1,0 +1,39 @@
+server:
+  port: ${PORT:8085}
+
+spring:
+  application:
+    name: payment-service
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:pharmacy_payment}?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+    username: ${SPRING_DATASOURCE_USERNAME:${DB_USERNAME:root}}
+    password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD:2205}}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+razorpay:
+  key-id: ${RAZORPAY_KEY_ID:rzp_test_T6dPUc4yPxTBNw}
+  key-secret: ${RAZORPAY_KEY_SECRET:5RiyDQ8eyzsdxcZca2SiJbWA}
+
+# Used by OpenApiConfig to set the server URL in Swagger docs
+app:
+  gateway-url: http://localhost:8089
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    com.anandpharmacy.payment: INFO
+
+

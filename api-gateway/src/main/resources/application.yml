@@ -1,0 +1,104 @@
+server:
+  port: ${PORT:8089}
+spring:
+  main:
+    web-application-type: reactive
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - ${FRONTEND_ORIGIN:http://localhost:3000}
+            allowedMethods: "*"
+            allowedHeaders: "*"
+            allowCredentials: true
+      routes:
+        - id: auth-service
+          uri: ${AUTH_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/auth/**
+        - id: auth-hello
+          uri: ${AUTH_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/hello/**
+        # Browser-based Google OAuth2 flow is served by the auth-service.
+        - id: auth-oauth2-authorize
+          uri: ${AUTH_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/oauth2/**
+        - id: auth-oauth2-callback
+          uri: ${AUTH_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/login/**
+        - id: product-service
+          uri: ${PRODUCT_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/products/**
+        - id: cart-service
+          uri: ${CART_SERVICE_URL:http://localhost:8083}
+          predicates:
+            - Path=/api/cart/**
+        - id: order-service
+          uri: ${ORDER_SERVICE_URL:http://localhost:8084}
+          predicates:
+            - Path=/api/orders/**
+        - id: payment-service
+          uri: ${PAYMENT_SERVICE_URL:http://localhost:8085}
+          predicates:
+            - Path=/api/payments/**
+        - id: prescription-service
+          uri: ${ORDER_SERVICE_URL:http://localhost:8084}
+          predicates:
+            - Path=/api/prescriptions/**
+
+        - id: auth-service-v3-api-docs
+          uri: ${AUTH_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api-docs/auth-service
+          filters:
+            - SetPath=/v3/api-docs
+        - id: product-service-v3-api-docs
+          uri: ${PRODUCT_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api-docs/product-service
+          filters:
+            - SetPath=/v3/api-docs
+        - id: cart-service-v3-api-docs
+          uri: ${CART_SERVICE_URL:http://localhost:8083}
+          predicates:
+            - Path=/api-docs/cart-service
+          filters:
+            - SetPath=/v3/api-docs
+        - id: order-service-v3-api-docs
+          uri: ${ORDER_SERVICE_URL:http://localhost:8084}
+          predicates:
+            - Path=/api-docs/order-service
+          filters:
+            - SetPath=/v3/api-docs
+        - id: payment-service-v3-api-docs
+          uri: ${PAYMENT_SERVICE_URL:http://localhost:8085}
+          predicates:
+            - Path=/api-docs/payment-service
+          filters:
+            - SetPath=/v3/api-docs
+
+app:
+  jwt-secret: ${JWT_SECRET:pharmacy_super_secret_key_please_change}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    urls:
+      - name: Auth Service
+        url: /api-docs/auth-service
+      - name: Product Service
+        url: /api-docs/product-service
+      - name: Cart Service
+        url: /api-docs/cart-service
+      - name: Order Service
+        url: /api-docs/order-service
+      - name: Payment Service
+        url: /api-docs/payment-service

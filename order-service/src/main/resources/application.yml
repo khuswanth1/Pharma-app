@@ -1,0 +1,17 @@
+server:
+  port: ${PORT:8084}
+spring:
+  application:
+    name: order-service
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:pharmacy_order}?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+    username: ${SPRING_DATASOURCE_USERNAME:${DB_USERNAME:root}}
+    password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD:2205}}
+  jpa:
+    hibernate:
+      ddl-auto: update
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+

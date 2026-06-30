@@ -1,0 +1,67 @@
+version: "3.8"
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    command: --default-authentication-plugin=mysql_native_password
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: api-gateway
+    ports:
+      - "8089:8089"
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: auth-service
+    ports:
+      - "8081:8081"
+    depends_on:
+      - mysql
+
+  product-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: product-service
+    ports:
+      - "8082:8082"
+    depends_on:
+      - mysql
+
+  cart-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: cart-service
+    ports:
+      - "8083:8083"
+    depends_on:
+      - mysql
+
+  order-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: order-service
+    ports:
+      - "8084:8084"
+    depends_on:
+      - mysql
+
+  payment-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: payment-service
+    ports:
+      - "8085:8085"
+    depends_on:
+      - mysql
