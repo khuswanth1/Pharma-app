@@ -12,9 +12,9 @@ spring:
   application:
     name: auth-service
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:pharmacy_auth}?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
-    username: ${SPRING_DATASOURCE_USERNAME:${DB_USERNAME:root}}
-    password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD:2205}}
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://${DB_HOST:bqznwk6pichvxngkotgk-mysql.services.clever-cloud.com}:${DB_PORT:3306}/${DB_NAME:bqznwk6pichvxngkotgk}?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+    username: ${SPRING_DATASOURCE_USERNAME:${DB_USERNAME:${DB_USER:u7mfxjqcy1huiyvw}}}
+    password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD:fsJUQC7iu4Q9f20lMSlu}}
   jpa:
     hibernate:
       ddl-auto: update
