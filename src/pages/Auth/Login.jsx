@@ -31,10 +31,17 @@ const Login = ({ onClose }) => {
 
   // If already logged in and loading as standalone landing page, auto redirect to Home
   useEffect(() => {
-    // Check if redirected back from Spring Security OAuth2 Google login
     const params = new URLSearchParams(window.location.search);
     const oauthToken = params.get("token");
     const oauthUserId = params.get("userId");
+    const oauthError = params.get("error");
+
+    if (oauthError === "google_auth_failed") {
+      setError("Google authentication failed. Please configure a valid GOOGLE_CLIENT_SECRET on the backend, or use the direct Google button.");
+      toast.error("Google authentication failed on backend.");
+      window.history.replaceState({}, document.title, window.location.pathname);
+      return;
+    }
     
     if (oauthToken && oauthUserId) {
       localStorage.setItem("pharmacy_token", oauthToken);
@@ -48,7 +55,7 @@ const Login = ({ onClose }) => {
             // Clean up query parameters from the URL
             window.history.replaceState({}, document.title, window.location.pathname);
             if (isPage) {
-              window.location.href = "/home";
+              window.location.href = "/home/All";
             } else {
               onClose();
             }
@@ -107,7 +114,7 @@ const Login = ({ onClose }) => {
           toast.success("Welcome back! Logged in successfully. 🔓");
           
           if (isPage) {
-            window.location.href = "/home";
+            window.location.href = "/home/All";
           } else {
             onClose();
           }
@@ -205,7 +212,7 @@ const Login = ({ onClose }) => {
     if (success) {
       toast.success(`Welcome, ${name.trim()}! Onboarding completed successfully! 🎉`);
       if (isPage) {
-        window.location.href = "/home";
+        window.location.href = "/home/All";
       } else {
         onClose();
       }
@@ -218,7 +225,7 @@ const Login = ({ onClose }) => {
     if (success) {
       toast.info("Onboarding completed with minimal profile details.");
       if (isPage) {
-        window.location.href = "/home";
+        window.location.href = "/home/All";
       } else {
         onClose();
       }
@@ -328,7 +335,7 @@ const Login = ({ onClose }) => {
           toast.success(`Welcome, ${profileData.name || 'User'}! Logged in successfully via Google. 🔓`);
           
           if (isPage) {
-            window.location.href = "/home";
+            window.location.href = "/home/All";
           } else {
             onClose();
           }
@@ -367,7 +374,7 @@ const Login = ({ onClose }) => {
     const initializeGoogleSignIn = () => {
       if (window.google) {
         window.google.accounts.id.initialize({
-          client_id: "835483946590-q21nftt5j44depfdvklupfrrj2siv273.apps.googleusercontent.com",
+          client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || "835483946590-q21nftt5j44depfdvklupfrrj2siv273.apps.googleusercontent.com",
           callback: handleCredentialResponse,
         });
 
@@ -558,19 +565,8 @@ const Login = ({ onClose }) => {
                 <span className="relative px-3 bg-white text-[10px] text-gray-400 font-extrabold uppercase">or continue with</span>
               </div>
 
-              <div className="w-full">
-                <button
-                  type="button"
-                  onClick={handleGoogleRedirectLogin}
-                  className="w-full py-3.5 border border-slate-205 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl flex items-center justify-center gap-3 transition active:scale-95 duration-200 font-extrabold text-xs text-gray-700 dark:text-gray-200 uppercase tracking-wider bg-white dark:bg-slate-900 shadow-sm"
-                >
-                  <img
-                    src="https://www.svgrepo.com/show/355037/google.svg"
-                    alt="Google logo"
-                    className="w-4 h-4"
-                  />
-                  Continue with Google
-                </button>
+              <div className="w-full flex justify-center mt-2">
+                <div id="googleButtonLogin"></div>
               </div>
             </form>
           )}
@@ -660,19 +656,8 @@ const Login = ({ onClose }) => {
                 <span className="relative px-3 bg-white text-[10px] text-gray-400 font-extrabold uppercase">or continue with</span>
               </div>
 
-              <div className="w-full">
-                <button
-                  type="button"
-                  onClick={handleGoogleRedirectLogin}
-                  className="w-full py-3.5 border border-slate-205 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl flex items-center justify-center gap-3 transition active:scale-95 duration-200 font-extrabold text-xs text-gray-700 dark:text-gray-200 uppercase tracking-wider bg-white dark:bg-slate-900 shadow-sm"
-                >
-                  <img
-                    src="https://www.svgrepo.com/show/355037/google.svg"
-                    alt="Google logo"
-                    className="w-4 h-4"
-                  />
-                  Continue with Google
-                </button>
+              <div className="w-full flex justify-center mt-2">
+                <div id="googleButtonSignup"></div>
               </div>
             </form>
           )}

@@ -159,10 +159,10 @@ const SearchBar = () => {
 
       {/* ⭐ INPUT BOX ⭐ */}
       <form onSubmit={onSubmit}>
-        <div className="flex items-center bg-white border border-gray-200 focus-within:border-orange-400 focus-within:ring-2 focus-within:ring-orange-100 rounded-full px-4 py-2.5 shadow-sm transition-all duration-200">
-          <Search className="text-gray-400 flex-shrink-0" sx={{ fontSize: 24 }} />
+        <div className="flex items-center bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 focus-within:border-orange-400 focus-within:ring-2 focus-within:ring-orange-100 dark:focus-within:ring-orange-950/20 rounded-full px-4 py-2.5 shadow-sm transition-all duration-200">
+          <Search className="text-gray-400 dark:text-slate-500 flex-shrink-0" sx={{ fontSize: 24 }} />
           <input
-            className="w-full ml-2.5 bg-transparent outline-none text-[13.5px] text-slate-800 placeholder-slate-400 font-medium"
+            className="w-full ml-2.5 bg-transparent outline-none text-[13.5px] text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 font-medium search-input-field"
             placeholder={isListening ? "Listening... Speak now!" : "Search medicines, wellness & health items..."}
             value={q}
             onChange={(e) => {
@@ -170,13 +170,16 @@ const SearchBar = () => {
               setShowSuggestions(true);
             }}
           />
+          {loadingSuggestions && (
+            <div className="w-5 h-5 border-2 border-orangeBrand border-t-transparent rounded-full animate-spin mr-2 flex-shrink-0"></div>
+          )}
           <button 
             type="button" 
             onClick={handleVoiceSearch}
             className={`p-1.5 rounded-full transition-all duration-200 flex-shrink-0 focus:outline-none ${
               isListening 
-                ? "bg-rose-50 text-rose-500 animate-pulse" 
-                : "hover:bg-slate-50 text-slate-500 hover:text-orange-500"
+                ? "bg-rose-50 dark:bg-rose-950/30 text-rose-500 animate-pulse" 
+                : "hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-orange-500 dark:hover:text-orange-400"
             }`}
             title="Search with Voice"
           >
@@ -188,19 +191,19 @@ const SearchBar = () => {
       {/* ⭐ SUGGESTIONS DROPDOWN ⭐ */}
       {showSuggestions && (suggestions.length > 0 || history.length > 0) && (
         <div
-          className="absolute left-0 right-0 bg-white shadow-xl rounded-2xl mt-2 border border-slate-100/80
+          className="absolute left-0 right-0 bg-white dark:bg-slate-900 shadow-xl rounded-2xl mt-2 border border-slate-100/80 dark:border-slate-800
                      max-h-72 overflow-y-auto z-[999] p-2 w-full animate-in fade-in duration-200"
         >
           {/* LAST SEARCHES */}
           {history.length > 0 && (
             <>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 mb-1.5 mt-1 select-none">
+              <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-2 mb-1.5 mt-1 select-none">
                 Recent Searches
               </p>
               {history.map((h, i) => (
                 <div
                   key={i}
-                  className="flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-slate-50 text-xs font-semibold text-slate-700 hover:text-slate-900 rounded-xl transition group"
+                  className="flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/60 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white rounded-xl transition group"
                 >
                   <div
                     onClick={() => {
@@ -210,7 +213,7 @@ const SearchBar = () => {
                     }}
                     className="flex items-center gap-2.5 flex-1 min-w-0"
                   >
-                    <History className="text-gray-400 flex-shrink-0" sx={{ fontSize: 18 }} />
+                    <History className="text-gray-400 dark:text-slate-500 flex-shrink-0" sx={{ fontSize: 18 }} />
                     <span className="truncate">{h}</span>
                   </div>
                   <button
@@ -218,21 +221,21 @@ const SearchBar = () => {
                       e.stopPropagation();
                       handleRemoveHistoryItem(h);
                     }}
-                    className="p-1 rounded-full hover:bg-slate-200 text-slate-400 hover:text-slate-700 transition"
+                    className="p-1 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 transition"
                     title="Remove search"
                   >
                     <Close sx={{ fontSize: 14 }} />
                   </button>
                 </div>
               ))}
-              <hr className="my-2 border-slate-50" />
+              <hr className="my-2 border-slate-50 dark:border-slate-800/60" />
             </>
           )}
 
           {/* PRODUCT RESULTS */}
           {suggestions.length > 0 && (
             <>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 mb-1.5 mt-1 select-none">
+              <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-2 mb-1.5 mt-1 select-none">
                 Suggested Products
               </p>
               {suggestions.map((item, idx) => (
@@ -243,9 +246,9 @@ const SearchBar = () => {
                     setQ("");
                     setShowSuggestions(false);
                   }}
-                  className="flex items-center px-3 py-2 hover:bg-orange-50/40 hover:text-orangeBrand cursor-pointer gap-2.5 rounded-xl transition text-xs font-semibold text-slate-700"
+                  className="flex items-center px-3 py-2 hover:bg-orange-50/40 dark:hover:bg-orange-950/20 hover:text-orangeBrand dark:hover:text-orange-400 cursor-pointer gap-2.5 rounded-xl transition text-xs font-semibold text-slate-700 dark:text-slate-300"
                 >
-                  <Search className="text-gray-400 flex-shrink-0" sx={{ fontSize: 18 }} />
+                  <Search className="text-gray-400 dark:text-slate-500 flex-shrink-0" sx={{ fontSize: 18 }} />
                   <span className="truncate">{item.name}</span>
                 </div>
               ))}

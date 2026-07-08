@@ -561,9 +561,41 @@ const Profile = () => {
   const [isToppingUp, setIsToppingUp] = useState(false);
   const [showTopUpModal, setShowTopUpModal] = useState(false);
   const [topUpAmount, setTopUpAmount] = useState("500");
+  const [topUpMethod, setTopUpMethod] = useState("razorpay");
+  const [showUpiModal, setShowUpiModal] = useState(false);
+  const [simulatedWalletOrder, setSimulatedWalletOrder] = useState(null);
+
+  const handleWalletUpiSuccess = async (orderToUse) => {
+    const targetOrder = orderToUse || simulatedWalletOrder;
+    if (!targetOrder) return;
+    setIsToppingUp(true);
+    setShowUpiModal(false);
+    try {
+      await verifyPayment({
+        razorpayOrderId: targetOrder.razorpayOrderId,
+        razorpayPaymentId: "WLT_PAY_" + Date.now(),
+        razorpaySignature: "WLT_SIG_" + Date.now()
+      });
+      const freshUser = await getProfileAPI(profile.id || profile.userId);
+      if (freshUser && freshUser.success) {
+        setProfile(freshUser.data);
+        localStorage.setItem("user", JSON.stringify(freshUser.data));
+        localStorage.setItem("pharmacy_user", JSON.stringify(freshUser.data));
+        window.dispatchEvent(new Event("storage"));
+      }
+      toast.success(`Successfully added ₹${targetOrder.amount / 100} to your wallet! 🎉`);
+      loadTransactions();
+    } catch (verifyErr) {
+      console.error(verifyErr);
+      toast.error("Signature verification failed.");
+    } finally {
+      setIsToppingUp(false);
+    }
+  };
 
   const handleWalletTopUp = () => {
     setTopUpAmount("500");
+    setTopUpMethod("razorpay");
     setShowTopUpModal(true);
   };
 
@@ -576,6 +608,24 @@ const Profile = () => {
     setIsToppingUp(true);
     setShowTopUpModal(false);
     try {
+      if (topUpMethod === "upi") {
+        try {
+          const orderId = `WLT_${profile.id || profile.userId || "GUEST"}_${Date.now()}`;
+          const pOrder = await createPaymentOrder({
+            orderId: orderId,
+            amount: Math.round(amount * 100),
+            paymentMethod: "UPI"
+          });
+          setSimulatedWalletOrder(pOrder);
+          setShowUpiModal(true);
+          setIsToppingUp(false);
+        } catch (payErr) {
+          toast.error("Failed to create wallet payment order.");
+          setIsToppingUp(false);
+        }
+        return;
+      }
+
       const scriptLoaded = await loadRazorpayScript();
       if (!scriptLoaded) {
         throw new Error("Razorpay SDK failed to load. Please check your internet connection.");
@@ -623,7 +673,25 @@ const Profile = () => {
           email: profile.email || "",
           contact: profile.phone || ""
         },
-        theme: { color: "#006A4E" },
+        theme: {  color: "#2734e9ff" },
+        config: {
+          display: {
+            blocks: {
+              upi: {
+                name: "UPI / QR Code",
+                instruments: [
+                  {
+                    method: "upi"
+                  }
+                ]
+              }
+            },
+            sequence: ["block.upi", "block.cards", "block.netbanking", "block.wallet"],
+            preferences: {
+              show_default_blocks: true
+            }
+          }
+        },
         modal: {
           ondismiss: () => {
             setIsToppingUp(false);
@@ -1591,7 +1659,7 @@ const Profile = () => {
                   onClick={handleLogout}
                   className="px-6 py-2.5 bg-orangeBrand hover:bg-orange-700 text-white font-extrabold text-xs rounded-xl shadow-md transition active:scale-95 duration-200"
                 >
-                  Logout Patient Session
+                  Logout
                 </button>
               </div>
             )}
@@ -1772,13 +1840,101 @@ const Profile = () => {
               ))}
             </div>
 
+            {/* Payment Method Selector */}
+            <div className="space-y-2">
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider text-left">
+                Select Payment Method
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setTopUpMethod("razorpay")}
+                  className={`py-3 rounded-xl border text-center flex flex-col justify-center items-center gap-1 transition ${
+                    topUpMethod === "razorpay"
+                      ? "border-[#006A4E] bg-emerald-50/10 text-[#006A4E] font-black"
+                      : "border-slate-200 hover:bg-slate-50 text-slate-500 font-bold"
+                  }`}
+                >
+                  <span className="text-[11px] block">Razorpay</span>
+                  <span className="text-[8px] text-gray-400 block font-normal">Card / Netbanking</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTopUpMethod("upi")}
+                  className={`py-3 rounded-xl border text-center flex flex-col justify-center items-center gap-1 transition ${
+                    topUpMethod === "upi"
+                      ? "border-[#006A4E] bg-emerald-50/10 text-[#006A4E] font-black"
+                      : "border-slate-200 hover:bg-slate-50 text-slate-500 font-bold"
+                  }`}
+                >
+                  <span className="text-[11px] block">UPI / QR Code</span>
+                  <span className="text-[8px] text-gray-400 block font-normal">Simulated QR Code</span>
+                </button>
+              </div>
+            </div>
+
             <button
               onClick={executeWalletTopUp}
               disabled={isToppingUp || !topUpAmount || parseFloat(topUpAmount) <= 0}
               className="w-full bg-[#006A4E] hover:bg-[#005740] disabled:bg-slate-200 disabled:text-slate-450 text-white font-extrabold text-xs py-4 rounded-full transition shadow-md active:scale-[0.98] uppercase tracking-wider"
             >
-              {isToppingUp ? "Processing..." : "Proceed to Pay"}
+              {isToppingUp ? "Processing..." : topUpMethod === "upi" ? "Simulate UPI Payment" : "Proceed to Pay"}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* UPI QR CODE WALLET MODAL */}
+      {showUpiModal && simulatedWalletOrder && (
+        <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-[2300] px-3 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl p-6 shadow-2xl max-w-sm w-full text-center space-y-5 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center pb-2 border-b border-gray-100">
+              <h3 className="text-xs font-black text-gray-800 uppercase tracking-wider">UPI / QR Code Wallet Top-Up</h3>
+              <button 
+                onClick={() => {
+                  setShowUpiModal(false);
+                  toast.warn("Payment dismissed.");
+                }} 
+                className="text-gray-400 hover:text-gray-600 font-extrabold text-sm"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="space-y-1">
+              <span className="text-[10px] text-gray-400 font-extrabold uppercase tracking-wider block">Wallet Top-up Amount</span>
+              <span className="text-2xl font-black text-gray-900 block">₹{simulatedWalletOrder.amount / 100}</span>
+            </div>
+
+            <div className="flex justify-center p-3 bg-slate-50 rounded-2xl border border-slate-100 shadow-inner">
+              <img 
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(`upi://pay?pa=7671085919@ybl&pn=Pharmacy%20Wallet&am=${simulatedWalletOrder.amount / 100}&cu=INR&tn=WalletTopup`)}`} 
+                alt="Wallet UPI Payment QR Code" 
+                className="w-[180px] h-[180px] object-contain"
+              />
+            </div>
+
+            <div className="text-[10px] text-gray-400 font-bold leading-relaxed px-4">
+              Scan this QR code to add money to your wallet via UPI, then click "Simulate Success" below to verify.
+            </div>
+
+            <div className="space-y-2 pt-2">
+              <button
+                onClick={() => handleWalletUpiSuccess()}
+                className="w-full bg-[#006A4E] hover:bg-[#005740] text-white font-extrabold text-xs py-3.5 rounded-xl shadow-md transition duration-200 active:scale-95 uppercase tracking-wider"
+              >
+                Simulate Payment Success
+              </button>
+              <button
+                onClick={() => {
+                  setShowUpiModal(false);
+                  toast.warn("Payment dismissed.");
+                }}
+                className="w-full border border-gray-200 hover:bg-slate-50 text-gray-500 font-extrabold text-xs py-3 rounded-xl transition duration-200 active:scale-95 uppercase tracking-wider"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}

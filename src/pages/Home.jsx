@@ -25,7 +25,7 @@ export default function Home() {
               to="/cart"
               className="px-6 py-2.5 bg-white text-orangeBrand hover:bg-orange-50 font-extrabold text-xs rounded-full shadow-md hover:shadow-lg transition active:scale-95 duration-200 whitespace-nowrap"
             >
-              View Cart & Checkout
+              View Cart
             </Link>
           </div>
         )}

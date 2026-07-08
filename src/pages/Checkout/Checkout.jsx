@@ -9,7 +9,7 @@ import { toast } from "react-toastify";
 import { loadAddresses } from "../../utils/addressStorage";
 import { createOrder, updateOrderStatus } from "../../api/orderService";
 import { createPaymentOrder, verifyPayment } from "../../api/paymentService";
-import { updateProfileAPI } from "../../api/authService";
+import { updateProfileAPI, getProfileAPI } from "../../api/authService";
 
 // Dynamically loads Razorpay checkout.js if not already present
 const loadRazorpayScript = () =>
@@ -95,6 +95,40 @@ const Checkout = () => {
     return saved ? JSON.parse(saved) : { name: "Keerthi M", email: "keerthi@example.com", phone: "+91 9876543210", walletBalance: 0 };
   });
 
+  const [showUpiModal, setShowUpiModal] = useState(false);
+  const [simulatedOrder, setSimulatedOrder] = useState(null);
+
+  const handleUpiPaymentSuccess = async (oToUse) => {
+    const targetOrder = oToUse || simulatedOrder;
+    if (!targetOrder) return;
+    setIsPlacingOrder(true);
+    setShowUpiModal(false);
+    try {
+      const amountInPaise = Math.round(Number(targetOrder.totalAmount || grandTotal) * 100);
+      const pOrder = await createPaymentOrder({
+        orderId: String(targetOrder.id),
+        amount: amountInPaise,
+        paymentMethod: "UPI"
+      });
+
+      await verifyPayment({
+        razorpayOrderId: pOrder.razorpayOrderId,
+        razorpayPaymentId: "UPI_PAY_" + targetOrder.id,
+        razorpaySignature: "UPI_SIG_" + targetOrder.id
+      });
+
+      await updateOrderStatus(targetOrder.id, "PAID");
+      
+      toast.success("UPI Payment Successful!");
+      finalizeOrderPlacement(targetOrder);
+    } catch (err) {
+      console.error("UPI Simulation error:", err);
+      toast.error("Failed to verify simulated UPI payment.");
+    } finally {
+      setIsPlacingOrder(false);
+    }
+  };
+
   const handlePrescriptionUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -173,11 +207,107 @@ const Checkout = () => {
 
       // STEP 2c — Wallet Payment: Deduct balance, record & verify payment record, then finalize
       if (paymentMethod === "wallet") {
-        if ((user.walletBalance || 0) < orderTotal) {
-          throw new Error("Insufficient wallet balance.");
-        }
-        const newBalance = Number(user.walletBalance) - orderTotal;
+        const currentWallet = Number(user.walletBalance || 0);
         const uId = user.id || user.userId;
+
+        // If wallet balance is insufficient, top up via Razorpay first
+        if (currentWallet < orderTotal) {
+          const missingAmount = orderTotal - currentWallet;
+          toast.info(`Wallet balance low. Topping up ₹${missingAmount.toFixed(2)} via Razorpay...`);
+
+          const sdkLoaded = await loadRazorpayScript();
+          if (!sdkLoaded) throw new Error("Razorpay SDK failed to load.");
+
+          const topUpOrder = await createPaymentOrder({
+            orderId: `WLT_${uId}_${Date.now()}`,
+            amount: Math.round(missingAmount * 100),
+            paymentMethod: "RAZORPAY"
+          });
+          if (!topUpOrder || !topUpOrder.razorpayOrderId) throw new Error("Failed to create wallet top-up order.");
+
+          setIsPlacingOrder(false);
+
+          const rzp = new window.Razorpay({
+            key: topUpOrder.keyId || "rzp_test_T6dPUc4yPxTBNw",
+            amount: topUpOrder.amount,
+            currency: topUpOrder.currency || "INR",
+            name: "Pharmacy Wallet Top-Up",
+            description: `Add ₹${missingAmount.toFixed(2)} to complete order`,
+            order_id: topUpOrder.razorpayOrderId,
+            handler: async (response) => {
+              setIsPlacingOrder(true);
+              try {
+                // 1. Verify top-up payment with Razorpay
+                await verifyPayment({
+                  razorpayOrderId: response.razorpay_order_id,
+                  razorpayPaymentId: response.razorpay_payment_id,
+                  razorpaySignature: response.razorpay_signature
+                });
+
+                // 2. Credit the top-up amount into wallet on server
+                const toppedUpBalance = currentWallet + missingAmount;
+                await updateProfileAPI(uId, { walletBalance: toppedUpBalance });
+
+                // ✅ Update UI immediately to show topped-up balance
+                const toppedUpUser = { ...user, walletBalance: toppedUpBalance };
+                setUser(toppedUpUser);
+                localStorage.setItem("pharmacy_user", JSON.stringify(toppedUpUser));
+                localStorage.setItem("user", JSON.stringify(toppedUpUser));
+                window.dispatchEvent(new Event("storage"));
+                toast.success(`₹${missingAmount.toFixed(2)} added to wallet! New balance: ₹${toppedUpBalance.toFixed(2)}`);
+
+                // 3. Now deduct the full order total from wallet
+                const finalBalance = toppedUpBalance - orderTotal;
+                const updateResp = await updateProfileAPI(uId, { walletBalance: finalBalance });
+                if (updateResp && updateResp.success) {
+                  // ✅ Update UI with final balance after deduction
+                  const finalUser = { ...user, walletBalance: finalBalance };
+                  setUser(finalUser);
+                  localStorage.setItem("pharmacy_user", JSON.stringify(finalUser));
+                  localStorage.setItem("user", JSON.stringify(finalUser));
+                  window.dispatchEvent(new Event("storage"));
+                }
+
+                // 4. Record wallet payment for the order
+                try {
+                  const wltOrder = await createPaymentOrder({
+                    orderId: `WLT_PAY_${uId}_${savedOrder.id}`,
+                    amount: Math.round(orderTotal * 100),
+                    paymentMethod: "WALLET"
+                  });
+                  await verifyPayment({
+                    razorpayOrderId: wltOrder.razorpayOrderId,
+                    razorpayPaymentId: "WLT_PAY_" + savedOrder.id,
+                    razorpaySignature: "WLT_SIG_" + savedOrder.id
+                  });
+                } catch (wltErr) {
+                  console.warn("[Checkout] Wallet payment record error (non-fatal):", wltErr);
+                }
+
+                setIsPlacingOrder(false);
+                toast.success("Order placed successfully via Wallet!");
+                finalizeOrderPlacement(savedOrder);
+              } catch (err) {
+                setIsPlacingOrder(false);
+                console.error("Wallet top-up order error:", err);
+                toast.error("Top-up succeeded but order processing failed. Contact support.");
+              }
+            },
+            prefill: { name: user.name || "", email: user.email || "", contact: user.phone || "" },
+            theme: {  color: "#2734e9ff" },
+            modal: {
+              ondismiss: () => {
+                setIsPlacingOrder(false);
+                toast.warn("Top-up cancelled. Order not placed.");
+              }
+            }
+          });
+          rzp.open();
+          return;
+        }
+
+        // Sufficient balance — deduct directly
+        const newBalance = currentWallet - orderTotal;
         const response = await updateProfileAPI(uId, { walletBalance: newBalance });
         if (response && response.success) {
           const updatedUser = { ...user, walletBalance: newBalance };
@@ -194,7 +324,6 @@ const Checkout = () => {
             amount: Math.round(orderTotal * 100),
             paymentMethod: "WALLET"
           });
-          // Verify WALLET payment (marked as SUCCESS automatically due to PaymentService logic)
           await verifyPayment({
             razorpayOrderId: pOrder.razorpayOrderId,
             razorpayPaymentId: "WLT_PAY_" + savedOrder.id,
@@ -205,6 +334,14 @@ const Checkout = () => {
         }
         setIsPlacingOrder(false);
         finalizeOrderPlacement(savedOrder);
+        return;
+      }
+
+      // STEP 2d — UPI Simulation Flow
+      if (paymentMethod === "upi") {
+        setSimulatedOrder(savedOrder);
+        setShowUpiModal(true);
+        setIsPlacingOrder(false);
         return;
       }
 
@@ -269,7 +406,26 @@ const Checkout = () => {
           contact: user.phone || ""
         },
         notes: { orderId: savedOrder.id },
-        theme: { color: "#ff7a00" },
+        theme: {  color: "#2734e9ff" },
+        config: {
+          display: {
+            blocks: {
+              upi: {
+                name: "UPI / QR Code",
+                instruments: [
+                  {
+                    method: "upi",
+                    flows: ["qr", "intent", "collect"]
+                  }
+                ]
+              }
+            },
+            sequence: ["block.upi", "block.cards", "block.netbanking", "block.wallet"],
+            preferences: {
+              show_default_blocks: true
+            }
+          }
+        },
 
         modal: {
           ondismiss: () => {
@@ -598,7 +754,7 @@ const Checkout = () => {
                 </div>
                 <div className="mt-2">
                   <span className="text-[11px] font-black text-gray-800 uppercase block">Razorpay</span>
-                  <span className="text-[9px] text-gray-400 font-bold block mt-0.5">Cards, UPI, Netbanking</span>
+                  <span className="text-[9px] text-gray-400 font-bold block mt-0.5">Cards, Netbanking, Wallet</span>
                 </div>
               </button>
               {/* COD Option */}
@@ -623,16 +779,8 @@ const Checkout = () => {
               {/* Wallet Option */}
               <button
                 type="button"
-                onClick={() => {
-                  if ((user.walletBalance || 0) < Number(grandTotal)) {
-                    toast.warn(`Insufficient wallet balance (₹${user.walletBalance || 0}). Please top up!`);
-                    return;
-                  }
-                  setPaymentMethod("wallet");
-                }}
+                onClick={() => setPaymentMethod("wallet")}
                 className={`p-4 rounded-2xl border text-left flex flex-col justify-between h-[100px] transition-all duration-200 relative ${
-                  (user.walletBalance || 0) < Number(grandTotal) ? "opacity-60 cursor-not-allowed bg-slate-50/50" : ""
-                } ${
                   paymentMethod === "wallet"
                     ? "border-orangeBrand bg-orange-50/10 shadow-sm"
                     : "border-gray-200 hover:bg-slate-50"
@@ -644,7 +792,9 @@ const Checkout = () => {
                 </div>
                 <div className="mt-2">
                   <span className="text-[11px] font-black text-gray-800 uppercase block">Pharmacy Wallet</span>
-                  <span className="text-[9px] text-emerald-600 font-bold block mt-0.5">Balance: ₹{user.walletBalance || 0}</span>
+                  <span className={`text-[9px] font-bold block mt-0.5 ${(user.walletBalance || 0) >= Number(grandTotal) ? "text-emerald-600" : "text-orange-500"}`}>
+                    Balance: ₹{user.walletBalance || 0}{(user.walletBalance || 0) < Number(grandTotal) && ` (Short ₹${(Number(grandTotal) - (user.walletBalance || 0)).toFixed(2)})`}
+                  </span>
                 </div>
               </button>
             </div>
@@ -757,6 +907,16 @@ const Checkout = () => {
                   <LocalAtm sx={{ fontSize: 16 }} />
                   <span>Place COD Order</span>
                 </>
+              ) : paymentMethod === "wallet" ? (
+                <>
+                  <AccountBalanceWallet sx={{ fontSize: 16 }} />
+                  <span>Pay ₹{grandTotal} via Wallet</span>
+                </>
+              ) : paymentMethod === "upi" ? (
+                <>
+                  <PhoneAndroid sx={{ fontSize: 16 }} />
+                  <span>Pay ₹{grandTotal} via UPI / QR Code</span>
+                </>
               ) : (
                 <>
                   <span>Pay ₹{grandTotal} via Razorpay</span>
@@ -768,6 +928,60 @@ const Checkout = () => {
 
         </div>
       </div>
+      {/* UPI QR CODE MODAL */}
+      {showUpiModal && simulatedOrder && (
+        <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-[2000] px-3 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl p-6 shadow-2xl max-w-sm w-full text-center space-y-5">
+            <div className="flex justify-between items-center pb-2 border-b border-gray-100">
+              <h3 className="text-xs font-black text-gray-800 uppercase tracking-wider">UPI / QR Code Payment</h3>
+              <button 
+                onClick={() => {
+                  setShowUpiModal(false);
+                  toast.warn("Payment dismissed. You can complete the payment later.");
+                }} 
+                className="text-gray-400 hover:text-gray-600 font-extrabold text-sm"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="space-y-1">
+              <span className="text-[10px] text-gray-400 font-extrabold uppercase tracking-wider block">Grand Total</span>
+              <span className="text-2xl font-black text-gray-900 block">₹{simulatedOrder.totalAmount}</span>
+            </div>
+
+            <div className="flex justify-center p-3 bg-slate-50 rounded-2xl border border-slate-100 shadow-inner">
+              <img 
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(`upi://pay?pa=7671085919@ybl&pn=Pharmacy%20App&am=${simulatedOrder.totalAmount}&cu=INR&tn=Order%20${simulatedOrder.id}`)}`} 
+                alt="UPI Payment QR Code" 
+                className="w-[180px] h-[180px] object-contain"
+              />
+            </div>
+
+            <div className="text-[10px] text-gray-400 font-bold leading-relaxed px-4">
+              Scan this QR code using GPay, PhonePe, Paytm or any UPI App to pay, then click "Simulate Success" below to verify and complete.
+            </div>
+
+            <div className="space-y-2 pt-2">
+              <button
+                onClick={() => handleUpiPaymentSuccess()}
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs py-3.5 rounded-xl shadow-md transition duration-200 active:scale-95 uppercase tracking-wider"
+              >
+                Simulate Payment Success
+              </button>
+              <button
+                onClick={() => {
+                  setShowUpiModal(false);
+                  toast.warn("Payment dismissed.");
+                }}
+                className="w-full border border-gray-200 hover:bg-slate-50 text-gray-500 font-extrabold text-xs py-3 rounded-xl transition duration-200 active:scale-95 uppercase tracking-wider"
+              >
+                Cancel / Pay Later
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

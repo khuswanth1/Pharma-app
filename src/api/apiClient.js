@@ -24,10 +24,14 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response interceptor to handle token expiration/401 Unauthorized errors
+// Response interceptor to handle token expiration/401 Unauthorized errors and log API failures
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
+    if (error.response) {
+      console.error("API Error Response Status:", error.response.status);
+      console.error("API Error Response Data:", error.response.data);
+    }
     if (error.response && error.response.status === 401) {
       console.warn("Unauthorized request detected (expired or invalid token). Logging out...");
       localStorage.removeItem('pharmacy_token');

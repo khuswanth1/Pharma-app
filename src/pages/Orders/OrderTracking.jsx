@@ -20,6 +20,32 @@ const OrderTracking = () => {
   const navigate = useNavigate();
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [isPayingNow, setIsPayingNow] = useState(false);
+  const [repayMethod, setRepayMethod] = useState("razorpay");
+  const [showUpiModal, setShowUpiModal] = useState(false);
+  const [simulatedRepayOrder, setSimulatedRepayOrder] = useState(null);
+
+  const handleRepayUpiSuccess = async (orderToUse) => {
+    const targetOrder = orderToUse || simulatedRepayOrder;
+    if (!targetOrder) return;
+    setIsPayingNow(true);
+    setShowUpiModal(false);
+    try {
+      await verifyPayment({
+        razorpayOrderId: targetOrder.razorpayOrderId,
+        razorpayPaymentId: "UPI_PAY_" + Date.now(),
+        razorpaySignature: "UPI_SIG_" + Date.now()
+      });
+      await updateOrderStatus(order.id, "PAID");
+      clearCart();
+      setIsPayingNow(false);
+      toast.success("Payment Successful!");
+      window.location.reload();
+    } catch (verifyErr) {
+      setIsPayingNow(false);
+      toast.error("Payment captured but verification failed. Contact support.");
+    }
+  };
+
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [refundMethod, setRefundMethod] = useState("wallet");
   const [isCancelling, setIsCancelling] = useState(false);
@@ -240,6 +266,23 @@ const OrderTracking = () => {
         return;
       }
 
+      if (repayMethod === "upi") {
+        try {
+          const pOrder = await createPaymentOrder({
+            orderId: String(order.id),
+            amount: Math.round(orderAmount * 100),
+            paymentMethod: "UPI"
+          });
+          setSimulatedRepayOrder(pOrder);
+          setShowUpiModal(true);
+          setIsPayingNow(false);
+        } catch (payErr) {
+          toast.error("Failed to initiate payment.");
+          setIsPayingNow(false);
+        }
+        return;
+      }
+
       const sdkLoaded = await loadRazorpayScript();
       if (!sdkLoaded) {
         toast.error("Razorpay SDK failed to load. Check your connection.");
@@ -294,6 +337,24 @@ const OrderTracking = () => {
         },
         notes: { orderId: order.id },
         theme: { color: "#2734e9ff" },
+        config: {
+          display: {
+            blocks: {
+              upi: {
+                name: "UPI / QR Code",
+                instruments: [
+                  {
+                    method: "upi"
+                  }
+                ]
+              }
+            },
+            sequence: ["block.upi", "block.cards", "block.netbanking", "block.wallet"],
+            preferences: {
+              show_default_blocks: true
+            }
+          }
+        },
         modal: {
           ondismiss: () => {
             setIsPayingNow(false);
@@ -970,14 +1031,41 @@ const OrderTracking = () => {
 
               {/* Pay Now Button (if pending payment) */}
               {!["DELIVERED", "CANCELLED", "FAILED", "PAID", "CONFIRMED", "PACKED", "SHIPPED"].includes((order.status || "").toUpperCase()) && order.paymentMethod !== "cod" && (
-                <button
-                  onClick={handlePayNow}
-                  disabled={isPayingNow}
-                  className="w-full bg-[#FF6F3C] hover:bg-[#e65a2b] text-white font-black text-xs py-3.5 rounded-2xl shadow-md flex items-center justify-center gap-1.5 transition active:scale-95 duration-150"
-                >
-                  <Payment sx={{ fontSize: 16 }} />
-                  <span>{isPayingNow ? "Processing..." : `Pay ${order.amount} Now`}</span>
-                </button>
+                <div className="space-y-2 border border-slate-100 p-3 rounded-2xl bg-slate-50/50">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest text-center mb-1">Repayment Method</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setRepayMethod("razorpay")}
+                      className={`py-2 rounded-xl border text-[10px] text-center transition ${
+                        repayMethod === "razorpay"
+                          ? "border-orangeBrand bg-orange-50/10 text-orangeBrand font-black"
+                          : "border-slate-200 hover:bg-slate-50 text-slate-500 font-bold"
+                      }`}
+                    >
+                      Razorpay
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRepayMethod("upi")}
+                      className={`py-2 rounded-xl border text-[10px] text-center transition ${
+                        repayMethod === "upi"
+                          ? "border-orangeBrand bg-orange-50/10 text-orangeBrand font-black"
+                          : "border-slate-200 hover:bg-slate-50 text-slate-500 font-bold"
+                      }`}
+                    >
+                      UPI / QR Code
+                    </button>
+                  </div>
+                  <button
+                    onClick={handlePayNow}
+                    disabled={isPayingNow}
+                    className="w-full bg-[#FF6F3C] hover:bg-[#e65a2b] text-white font-black text-xs py-3.5 rounded-2xl shadow-md flex items-center justify-center gap-1.5 transition active:scale-95 duration-150 mt-1"
+                  >
+                    <Payment sx={{ fontSize: 16 }} />
+                    <span>{isPayingNow ? "Processing..." : repayMethod === "upi" ? `Simulate UPI Payment (${order.amount})` : `Pay ${order.amount} via Razorpay`}</span>
+                  </button>
+                </div>
               )}
             </section>
 
@@ -1162,6 +1250,60 @@ const OrderTracking = () => {
             >
               {isCancelling ? "Processing..." : "Cancel with full refund"}
             </button>
+          </div>
+        </div>
+      )}
+      {/* UPI QR CODE REPAY MODAL */}
+      {showUpiModal && simulatedRepayOrder && (
+        <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-[2300] px-3 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl p-6 shadow-2xl max-w-sm w-full text-center space-y-5 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center pb-2 border-b border-gray-100">
+              <h3 className="text-xs font-black text-gray-800 uppercase tracking-wider">UPI / QR Code Order Payment</h3>
+              <button 
+                onClick={() => {
+                  setShowUpiModal(false);
+                  toast.warn("Payment dismissed.");
+                }} 
+                className="text-gray-400 hover:text-gray-600 font-extrabold text-sm"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="space-y-1">
+              <span className="text-[10px] text-gray-400 font-extrabold uppercase tracking-wider block">Total Amount Due</span>
+              <span className="text-2xl font-black text-gray-900 block">{order.amount}</span>
+            </div>
+
+            <div className="flex justify-center p-3 bg-slate-50 rounded-2xl border border-slate-100 shadow-inner">
+              <img 
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(`upi://pay?pa=7671085919@ybl&pn=Pharmacy%20App&am=${parseFloat(String(order.amount).replace("₹", "")) || 0}&cu=INR&tn=Order%20${order.id}`)}`} 
+                alt="Order UPI Payment QR Code" 
+                className="w-[180px] h-[180px] object-contain"
+              />
+            </div>
+
+            <div className="text-[10px] text-gray-400 font-bold leading-relaxed px-4">
+              Scan this QR code using GPay, PhonePe, Paytm or any UPI App to pay, then click "Simulate Success" below to verify.
+            </div>
+
+            <div className="space-y-2 pt-2">
+              <button
+                onClick={() => handleRepayUpiSuccess()}
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs py-3.5 rounded-xl shadow-md transition duration-200 active:scale-95 uppercase tracking-wider"
+              >
+                Simulate Payment Success
+              </button>
+              <button
+                onClick={() => {
+                  setShowUpiModal(false);
+                  toast.warn("Payment dismissed.");
+                }}
+                className="w-full border border-gray-200 hover:bg-slate-50 text-gray-500 font-extrabold text-xs py-3 rounded-xl transition duration-200 active:scale-95 uppercase tracking-wider"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}
