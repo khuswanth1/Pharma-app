@@ -1,9 +1,10 @@
-<project xmlns="http://maven.apache.org/POM/2.0.0" xmlns:xsi="http://maven.apache.org/xsd/maven-2.0.0.xsd">
-    <parent><groupId>com.anandpharmacy</groupId><artifactId>pharmacy-backend</artifactId><version>1.0.0</version></parent>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent><groupId>com.pharmacy</groupId><artifactId>pharmacy-backend</artifactId><version>1.0.0</version></parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>order-service</artifactId>
     <dependencies>
-        <dependency><groupId>com.anandpharmacy</groupId><artifactId>common-lib</artifactId><version>1.0.0</version></dependency>
+        <dependency><groupId>com.pharmacy</groupId><artifactId>common-lib</artifactId><version>1.0.0</version></dependency>
         <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-web</artifactId></dependency>
         <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-data-jpa</artifactId></dependency>
         <dependency><groupId>com.mysql</groupId><artifactId>mysql-connector-j</artifactId></dependency>
@@ -13,7 +14,6 @@
             <artifactId>spring-boot-devtools</artifactId>
             <optional>true</optional>
         </dependency>
-
     </dependencies>
     <build>
         <plugins>
@@ -22,6 +22,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <skip>false</skip>
+                    <mainClass>com.pharmacy.order.OrderServiceApplication</mainClass>
                 </configuration>
             </plugin>
         </plugins>

@@ -1,11 +1,4 @@
 package com.anandpharmacy.gateway;
-
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-@SpringBootApplication
-public class GatewayApplication {
-    public static void main(String[] args) {
-        SpringApplication.run(GatewayApplication.class, args);
-    }
-}
+// Deprecated: This class is superseded by com.pharmacy.gateway.GatewayApplication
+// Do not use - kept for source compatibility only
+public class GatewayApplication {}

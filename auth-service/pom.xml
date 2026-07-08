@@ -1,7 +1,7 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://maven.apache.org/POM/4.0.0/xsi"
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <groupId>com.anandpharmacy</groupId>
+        <groupId>com.pharmacy</groupId>
         <artifactId>pharmacy-backend</artifactId>
         <version>1.0.0</version>
     </parent>
@@ -9,7 +9,7 @@
     <artifactId>auth-service</artifactId>
     <dependencies>
         <dependency>
-            <groupId>com.anandpharmacy</groupId>
+            <groupId>com.pharmacy</groupId>
             <artifactId>common-lib</artifactId>
             <version>1.0.0</version>
         </dependency>
@@ -25,7 +25,6 @@
         <dependency><groupId>io.jsonwebtoken</groupId><artifactId>jjwt-impl</artifactId><version>0.12.5</version><scope>runtime</scope></dependency>
         <dependency><groupId>io.jsonwebtoken</groupId><artifactId>jjwt-jackson</artifactId><version>0.12.5</version><scope>runtime</scope></dependency>
         <dependency><groupId>org.springdoc</groupId><artifactId>springdoc-openapi-starter-webmvc-ui</artifactId></dependency>
-
     </dependencies>
     <build>
         <plugins>
@@ -34,6 +33,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <skip>false</skip>
+                    <mainClass>com.pharmacy.auth.AuthServiceApplication</mainClass>
                 </configuration>
             </plugin>
         </plugins>

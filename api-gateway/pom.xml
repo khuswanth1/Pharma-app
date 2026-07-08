@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <groupId>com.anandpharmacy</groupId>
+        <groupId>com.pharmacy</groupId>
         <artifactId>pharmacy-backend</artifactId>
         <version>1.0.0</version>
     </parent>
@@ -17,7 +17,7 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.anandpharmacy</groupId>
+            <groupId>com.pharmacy</groupId>
             <artifactId>common-lib</artifactId>
             <version>1.0.0</version>
             <exclusions>
@@ -48,7 +48,6 @@
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
         </dependency>
-
     </dependencies>
     <build>
         <plugins>
@@ -57,6 +56,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <skip>false</skip>
+                    <mainClass>com.pharmacy.gateway.GatewayApplication</mainClass>
                 </configuration>
             </plugin>
         </plugins>
